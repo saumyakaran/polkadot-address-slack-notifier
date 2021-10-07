@@ -56,7 +56,7 @@ async function watchBalance(address, api) {
 					},
 					{
 						title: "🔗 Subscan", // Custom field
-						value: `${network.toLowerCase()}.subscan.io/account/${address}`
+						value: `${network.toLowerCase()}.subscan.io/account/${address}`,
 						short: true, // long fields will be full width
 					},
 				],
