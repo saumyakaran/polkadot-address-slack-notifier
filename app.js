@@ -1,6 +1,7 @@
 const { ApiPromise, WsProvider } = require("@polkadot/api");
 const dotenv = require("dotenv");
 const https = require("https");
+const http = require("http");
 const chalk = require("chalk");
 
 dotenv.config();
@@ -21,6 +22,14 @@ async function main() {
 	if (!webhookURL) {
 		console.error(error("Please fill in your Webhook URL"));
 	}
+
+	http
+		.createServer(function (req, res) {
+			res.writeHead(200, { "Content-Type": "text/plain" });
+			res.send("it is running\n");
+		})
+		.listen(process.env.PORT || 5000);
+
 	const wsProvider = new WsProvider(rpc);
 	const api = await ApiPromise.create({ provider: wsProvider });
 
@@ -52,9 +61,9 @@ async function watchBalance(address, api) {
 			if (!change.isZero()) {
 				console.log(
 					change < 0
-						? `💸 Sent ${error(Math.abs(change) / 10 ** decimals + " " + suffix)}\n${
-								info("nonce ") + currentNonce
-						  }\n`
+						? `💸 Sent ${error(
+								Math.abs(change) / 10 ** decimals + " " + suffix
+						  )}\n${info("nonce ") + currentNonce}\n`
 						: `🤑 Received ${success(change / 10 ** decimals + " " + suffix)}`
 				);
 
