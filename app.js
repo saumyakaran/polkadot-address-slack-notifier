@@ -1,6 +1,6 @@
 const { ApiPromise, WsProvider } = require("@polkadot/api");
 const dotenv = require("dotenv");
-const https = require("https"); 
+const https = require("https");
 const chalk = require("chalk");
 
 dotenv.config();
@@ -35,6 +35,35 @@ async function watchBalance(address, api) {
 		nonce: previousNonce,
 	} = await api.query.system.account(address);
 
+	const addressWatcherStartedNotification = {
+		username: "Balance change notifier", // This will appear as user name who posts the message
+		text: "Started watching address", // text
+		icon_emoji: ":eyes:", // User icon, you can also use custom icons here
+		attachments: [
+			{
+				// this defines the attachment block, allows for better layout usage
+				color: "#dddddd", // color of the attachments sidebar.
+				fields: [
+					// actual fields
+					{
+						title: "👀 Watch address", // Custom field
+						value: address,
+					},
+					{
+						title: "💰 Current balance", // Custom field
+						value: previousFree / 10 ** decimals + " " + suffix, // Custom value
+						short: true, // long fields will be full width
+					},
+					{
+						title: "🔗 Subscan", // Custom field
+						value: `${network.toLowerCase()}.subscan.io/account/${address}`
+						short: true, // long fields will be full width
+					},
+				],
+			},
+		],
+	};
+
 	console.log(
 		`👉🏻 ${underline(
 			address.slice(0, 4) + "..." + address.slice(-4)
@@ -42,6 +71,16 @@ async function watchBalance(address, api) {
 			previousFree / 10 ** decimals + " " + suffix
 		)}, nonce ${previousNonce}\n`
 	);
+
+	try {
+		const slackResponse = await sendSlackMessage(
+			webhookURL,
+			addressWatcherStartedNotification
+		);
+		console.log(info("info ") + "Message response", slackResponse);
+	} catch (e) {
+		console.error(error("error ") + "There was an error with the request", e);
+	}
 
 	// Here we subscribe to any balance changes and update the on-screen value
 	api.query.system.account(
